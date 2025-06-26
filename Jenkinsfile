@@ -18,15 +18,23 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Compile le projet et construit le jar en SKIPPANT les TESTS
                 sh './mvnw clean install -DskipTests'
             }
         }
 
-        // Ici tu peux ajouter des étapes supplémentaires :
-        // Exemple :
-        // stage('SonarQube Analysis') { ... }
-        // stage('Docker Build') { ... }
-        // stage('Deploy') { ... }
+        stage('Maven Release') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'github-cred', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    sh '''
+                        git config --global user.email "jenkins@localhost"
+                        git config --global user.name "Jenkins"
+                        ./mvnw release:prepare release:perform -B \
+                          -Dusername=$GIT_USERNAME \
+                          -Dpassword=$GIT_PASSWORD \
+                          -DskipTests=true
+                    '''
+                }
+            }
+        }
     }
 }
