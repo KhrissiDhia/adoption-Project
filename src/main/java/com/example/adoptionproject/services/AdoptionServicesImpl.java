@@ -1,7 +1,11 @@
 package com.example.adoptionproject.services;
 
-import com.example.adoptionproject.entities.*;
-import com.example.adoptionproject.repositories.*;
+import com.example.adoptionproject.entities.Adoptant;
+import com.example.adoptionproject.entities.Animal;
+import com.example.adoptionproject.entities.Adoption;
+import com.example.adoptionproject.repositories.AdoptantRepository;
+import com.example.adoptionproject.repositories.AnimalRepository;
+import com.example.adoptionproject.repositories.AdoptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,7 +15,8 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class AdoptionServicesImpl implements IAdoptionServices{
+public class AdoptionServicesImpl implements IAdoptionServices {
+
     private final AdoptantRepository adoptantRepository;
     private final AnimalRepository animalRepository;
     private final AdoptionRepository adoptionRepository;
@@ -28,8 +33,8 @@ public class AdoptionServicesImpl implements IAdoptionServices{
 
     @Override
     public Adoption addAdoption(Adoption adoption, int idAdoptant, int idAnimal) {
-        Adoptant adoptant = adoptantRepository.findById(idAdoptant).orElse(null);
-        Animal animal = animalRepository.findById(idAnimal).orElse(null);
+        var adoptant = adoptantRepository.findById(idAdoptant).orElse(null);
+        var animal = animalRepository.findById(idAnimal).orElse(null);
         if (adoptant != null && animal != null) {
             adoption.setAdoptant(adoptant);
             adoption.setAnimal(animal);
@@ -40,14 +45,14 @@ public class AdoptionServicesImpl implements IAdoptionServices{
 
     @Override
     public List<Adoption> getAdoptionsByAdoptant(String nom) {
-        return adoptionRepository.findByAdoptant_Nom(nom);
+        return adoptionRepository.findByAdoptantNom(nom);
     }
 
     @Override
     public float calculFraisTotalAdoptions(int idAdoptant) {
-        List<Adoption> adoptions = adoptionRepository.findByAdoptant_IdAdoptant(idAdoptant);
-        float total = 0f;
-        for (Adoption adoption : adoptions) {
+        var adoptions = adoptionRepository.findByAdoptantIdAdoptant(idAdoptant);
+        var total = 0f;
+        for (var adoption : adoptions) {
             total += adoption.getFrais();
         }
         return total;

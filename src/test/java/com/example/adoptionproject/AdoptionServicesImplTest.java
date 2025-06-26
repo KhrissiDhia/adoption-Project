@@ -83,11 +83,11 @@ class AdoptionServicesImplTest {
     @Test
     void testGetAdoptionsByAdoptant() {
         List<Adoption> adoptions = Collections.singletonList(new Adoption());
-        when(adoptionRepository.findByAdoptant_Nom("John")).thenReturn(adoptions);
+        when(adoptionRepository.findByAdoptantNom("John")).thenReturn(adoptions);
 
         List<Adoption> result = adoptionServices.getAdoptionsByAdoptant("John");
         assertEquals(1, result.size());
-        verify(adoptionRepository, times(1)).findByAdoptant_Nom("John");
+        verify(adoptionRepository, times(1)).findByAdoptantNom("John");
     }
 
     @Test
@@ -97,7 +97,7 @@ class AdoptionServicesImplTest {
         Adoption a2 = new Adoption();
         a2.setFrais(150.0f);
 
-        when(adoptionRepository.findByAdoptant_IdAdoptant(1)).thenReturn(Arrays.asList(a1, a2));
+        when(adoptionRepository.findByAdoptantIdAdoptant(1)).thenReturn(Arrays.asList(a1, a2));
 
         float total = adoptionServices.calculFraisTotalAdoptions(1);
         assertEquals(250.0f, total);

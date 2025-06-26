@@ -5,8 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface AdoptionRepository  extends JpaRepository<Adoption, Integer> {
-    List<Adoption> findByAdoptant_Nom(String nom);
-    List<Adoption> findByAdoptant_IdAdoptant(int idAdoptant);
-
+public interface AdoptionRepository extends JpaRepository<Adoption, Integer> {
+    List<Adoption> findByAdoptantNom(String nom);
+    List<Adoption> findByAdoptantIdAdoptant(int idAdoptant);
 }
