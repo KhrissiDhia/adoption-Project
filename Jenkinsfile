@@ -2,9 +2,9 @@ pipeline {
   agent any
 
   environment {
-    SONAR_PROJECT_KEY = 'equipe1-3arctic1-2425'
+    SONAR_PROJECT_KEY = 'adoption-project'
     SONAR_HOST_URL = 'http://localhost:9000'
-    SONAR_LOGIN = credentials('sonar-token1')
+    SONAR_LOGIN = credentials('sonarqu')
   }
 
   stages {
