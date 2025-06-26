@@ -1,40 +1,61 @@
 pipeline {
-    agent any
+  agent any
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git url: 'https://github.com/KhrissiDhia/adoption-Project.git',
-                    branch: 'main',
-                    credentialsId: 'github-cred'
-            }
-        }
+  environment {
+    SONAR_PROJECT_KEY = 'equipe1-3arctic1-2425'
+    SONAR_HOST_URL = 'http://localhost:9000'
+    SONAR_LOGIN = credentials('sonar-token1')
+  }
 
-        stage('Prepare') {
-            steps {
-                sh 'chmod +x mvnw'
-            }
-        }
+  stages {
 
-        stage('Build') {
-            steps {
-                sh './mvnw clean install -DskipTests'
-            }
-        }
-
-        stage('Maven Release') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'github-cred', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                    sh '''
-                        git config --global user.email "jenkins@localhost"
-                        git config --global user.name "Jenkins"
-                        ./mvnw release:prepare release:perform -B \
-                          -Dusername=$GIT_USERNAME \
-                          -Dpassword=$GIT_PASSWORD \
-                          -DskipTests=true
-                    '''
-                }
-            }
-        }
+    stage('🧹 Clean') {
+      steps {
+        sh 'mvn clean'
+      }
     }
+
+    stage('⚙️ Compile') {
+      steps {
+        sh 'mvn compile'
+      }
+    }
+
+    stage('🧪 Tests') {
+      steps {
+        sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest'
+      }
+    }
+
+    stage('📦 Package + Detect JAR') {
+      steps {
+        sh 'mvn package -DskipTests'
+        script {
+          sleep 10
+          def jar = sh(script: "ls target/*.jar | grep -v 'original' | head -n 1", returnStdout: true).trim()
+          env.JAR_NAME = jar.replaceAll('target/', '')
+          echo "✅ JAR détecté : ${env.JAR_NAME}"
+        }
+      }
+    }
+
+    stage('🔍 Analyse SonarQube') {
+      steps {
+        withSonarQubeEnv('MySonarServer') {
+          sh """
+            mvn sonar:sonar \\
+              -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+              -Dsonar.host.url=${SONAR_HOST_URL} \\
+              -Dsonar.login=${SONAR_LOGIN}
+          """
+        }
+      }
+    }
+
+    stage('📤 Deploy Nexus') {
+      steps {
+        sh 'mvn deploy -DskipTests'
+      }
+    }
+  }
 }
