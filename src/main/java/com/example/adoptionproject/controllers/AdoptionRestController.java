@@ -14,10 +14,22 @@ public class AdoptionRestController {
 
     private final IAdoptionServices adoptionServices;
 
+    //@PostMapping("/addAdoptant")
+    // public Adoptant addAdoptant(@RequestBody Adoptant adoptant) {
+      //  return adoptionServices.addAdoptant(adoptant);
+    //}
     @PostMapping("/addAdoptant")
     public Adoptant addAdoptant(@RequestBody Adoptant adoptant) {
+        Adoptant adoptant1 = new Adoptant();
+        adoptant.setNom(adoptant.getNom());
+        adoptant.setAdresse(adoptant.getAdresse());
+        adoptant.setTelephone(adoptant.getTelephone());
+
         return adoptionServices.addAdoptant(adoptant);
     }
+
+
+
 
     @PostMapping("/addAnimal")
     public Animal addAnimal(@RequestBody Animal animal) {
