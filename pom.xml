@@ -135,12 +135,20 @@
             </plugin>
 
         </plugins>
+
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-http</artifactId>
+                <version>3.5.3</version>
+            </extension>
+        </extensions>
     </build>
 
     <distributionManagement>
         <snapshotRepository>
             <id>deploymentRepo</id>
-            <url>http://172.30.93.238:8081/repository/maven-snapshots//</url>
+            <url>http://172.30.93.238:8081/repository/maven-snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
