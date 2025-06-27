@@ -3,7 +3,6 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-
   }
 
   stages {
@@ -33,13 +32,13 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withCredentials([string(credentialsId: 'sonar11', variable: 'SONAR_TOKEN_SECURE')]) {
+        withCredentials([string(credentialsId: 'sonar11', variable: 'SONAR_TOKEN')]) {
           withSonarQubeEnv('sonar') {
-            sh label: 'Analyse SonarQube', script: '''
+            sh '''
               mvn -B sonar:sonar \
-                -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                 -Dsonar.host.url=http://172.30.93.238:9000 \
-                -Dsonar.login=$SONAR_TOKEN_SECURE \
+                -Dsonar.login=${SONAR_TOKEN} \
                 -Dsonar.java.source=17 \
                 -Dsonar.sourceEncoding=UTF-8
             '''
