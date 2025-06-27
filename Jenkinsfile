@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL = 'http://localhost:9000'
+    SONAR_HOST_URL = 'http://172.30.93.238:9000/'
   }
 
   stages {
