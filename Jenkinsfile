@@ -3,29 +3,48 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL = 'http://localhost:9000' // À adapter selon votre installation
-    SONAR_TOKEN = credentials('sonarqu')
+    SONAR_HOST_URL = 'http://localhost:9000'  // Doit correspondre à l'URL configurée
   }
 
   stages {
-    // [Les autres stages restent identiques...]
+    stage('🧹 Clean') {
+      steps { sh 'mvn clean' }
+    }
+
+    stage('⚙️ Compile') {
+      steps { sh 'mvn compile' }
+    }
+
+    stage('🧪 Tests') {
+      steps { sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest' }
+    }
+
+    stage('📦 Package') {
+      steps { sh 'mvn package -DskipTests' }
+    }
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('sonar') { // Doit correspondre au nom dans Jenkins
-          // Solution sécurisée pour éviter l'interpolation Groovy
-          script {
-            withCredentials([string(credentialsId: 'sonarqu', variable: 'SONAR_TOKEN_SECURE')]) {
-              sh """
-                mvn sonar:sonar \
-                  -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                  -Dsonar.host.url=${SONAR_HOST_URL} \
-                  -Dsonar.login=${SONAR_TOKEN_SECURE}
-              """
-            }
+        withSonarQubeEnv('sonar') {  // Doit exactement matcher le nom dans Jenkins
+          withCredentials([string(credentialsId: 'sonarqu', variable: 'SONAR_TOKEN')]) {
+            sh """
+              mvn sonar:sonar \
+                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                -Dsonar.host.url=${SONAR_HOST_URL} \
+                -Dsonar.login=${SONAR_TOKEN}
+            """
           }
         }
       }
+    }
+  }
+
+  post {
+    always {
+      echo 'Pipeline terminé - voir les résultats ci-dessus'
+    }
+    failure {
+      echo 'ÉCHEC du pipeline - vérifiez les logs'
     }
   }
 }
