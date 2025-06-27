@@ -5,7 +5,7 @@ pipeline {
     // === SONARQUBE CONFIGURATION ===
     SONAR_PROJECT_KEY = 'adoption-project'
     SONAR_HOST_URL = 'http://localhost:9000'
-    SONAR_LOGIN = credentials('jenkinsDevops')  // token SonarQube valide
+    SONAR_LOGIN = credentials('Git')  // token SonarQube valide
 
     // === DOCKER CONFIGURATION ===
     DOCKER_REGISTRY = 'docker.io'
