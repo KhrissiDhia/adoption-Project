@@ -106,15 +106,17 @@ pipeline {
           usernameVariable: 'DOCKER_USER',
           passwordVariable: 'DOCKER_PASS'
         )]) {
-          sh """
-            echo "${DOCKER_PASS}" | docker login -u "${DOCKER_USER}" --password-stdin
+          // Use single quotes around the shell script and double quotes inside to prevent interpolation issues
+          sh '''
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push ${DOCKER_IMAGE}:latest
-            docker push ${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+            docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
             docker logout
-          """
+          '''
         }
       }
     }
+
 
     stage('🚀 Docker Compose') {
       steps {
