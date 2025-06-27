@@ -2,37 +2,29 @@ pipeline {
   agent any
 
   environment {
-    SONAR_PROJECT_KEY = 'adoption-project'               // Ton projet SonarQube
-    SONAR_HOST_URL    = 'http://172.30.93.238:9000'      // Ton URL SonarQube
-    SONAR_LOGIN       = credentials('sonar11')           // Ton token Sonar (Secret text)
-
-    NEXUS_CREDENTIALS = 'nexus-creds'                     // Credentials Nexus (username/password)
-    NEXUS_URL         = 'http://nexus.example.com/repository/maven-releases/'  // URL Nexus repo
-
-    DOCKER_IMAGE      = 'mondockeruser/adoption-app'      // Image Docker avec tag complet
-    DOCKER_CREDENTIALS= 'dockerhub-creds'                 // Credentials Docker Hub
+    SONAR_PROJECT_KEY = 'adoption-project'
+    SONAR_HOST_URL    = 'http://localhost:9000'
+    SONAR_LOGIN       = credentials('sonar11')
+    DOCKER_IMAGE      = 'monuser/adoption-app'
+    DOCKER_CREDENTIALS= 'dockerhub-creds'
+    NEXUS_CREDENTIALS = 'nexus-creds'
+    NEXUS_URL         = 'http://nexus.example.com/repository/maven-releases/'
   }
 
   stages {
     stage('🧹 Clean') {
-      steps {
-        sh 'mvn clean'
-      }
+      steps { sh 'mvn clean' }
     }
 
     stage('⚙️ Compile') {
-      steps {
-        sh 'mvn compile'
-      }
+      steps { sh 'mvn compile' }
     }
 
     stage('🧪 Tests') {
-      steps {
-        sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest'
-      }
+      steps { sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest' }
     }
 
-    stage('📦 Package + Detect JAR') {
+    stage('📦 Package') {
       steps {
         sh 'mvn package -DskipTests'
         script {
