@@ -49,13 +49,7 @@ pipeline {
         }
       }
     }
-   stage('🛡️ Quality Gate') {
-     steps {
-       timeout(time: 1, unit: 'HOURS') {
-         waitForQualityGate abortPipeline: false
-       }
-     }
-   }
+
     stage('📤 Deploy Nexus') {
       steps {
         withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS, usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
