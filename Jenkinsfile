@@ -48,18 +48,19 @@ pipeline {
       }
     }
 
-    stage('SonarQube Analyse') {
+    stage('🔍 Analyse SonarQube') {
       steps {
         withSonarQubeEnv('MySonarServer') {
           sh """
             mvn sonar:sonar \\
-              -Dsonar.projectKey=adoption-project \\
-              -Dsonar.host.url=http://localhost:9000 \\
+              -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
+              -Dsonar.host.url=${SONAR_HOST_URL} \\
               -Dsonar.login=${SONAR_LOGIN}
           """
         }
       }
     }
+
 
     // Optionnel : ajouter Docker build & push si tu veux
   }
