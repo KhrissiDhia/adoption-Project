@@ -4,7 +4,13 @@ pipeline {
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
     SONAR_HOST_URL = 'http://localhost:9000'
-    SONAR_LOGIN = credentials('sonarqu')
+    SONAR_LOGIN = credentials('github-cred')
+
+    // Variables Docker - à adapter selon ton Docker Hub
+    DOCKER_REGISTRY = 'docker.io'
+    DOCKER_REPO = 'dhiakhrissi'          // Ton namespace Docker Hub
+    DOCKER_IMAGE = 'adoption-project'    // Nom de l'image Docker
+    DOCKER_CREDENTIALS = 'dockerhub-cred'  // Id des credentials Jenkins pour Docker Hub
   }
 
   stages {
@@ -57,5 +63,38 @@ pipeline {
         sh 'mvn deploy -DskipTests'
       }
     }
+
+    stage('🐳 Build Docker Image') {
+      steps {
+        script {
+          dockerImage = docker.build("${DOCKER_REPO}/${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+        }
+      }
+    }
+
+    stage('🚀 Push Docker Image') {
+      steps {
+        script {
+          docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS) {
+            dockerImage.push()
+            dockerImage.push('latest')
+          }
+        }
+      }
+    }
+
+    // Optionnel : déploiement sur un serveur en lançant le container
+    /*
+    stage('⚡ Deploy Container') {
+      steps {
+        sh """
+          docker pull ${DOCKER_REPO}/${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+          docker stop adoption-app || true
+          docker rm adoption-app || true
+          docker run -d --name adoption-app -p 8089:8089 ${DOCKER_REPO}/${DOCKER_IMAGE}:${env.BUILD_NUMBER}
+        """
+      }
+    }
+    */
   }
 }
