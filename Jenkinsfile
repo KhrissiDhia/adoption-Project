@@ -37,7 +37,7 @@ pipeline {
             sh '''
               mvn -B sonar:sonar \
                 -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                -Dsonar.host.url=http://localhost:9000 \
+                -Dsonar.host.url=http://172.30.93.238:9000 \
                 -Dsonar.login=${SONAR_TOKEN} \
                 -Dsonar.java.source=17 \
                 -Dsonar.sourceEncoding=UTF-8
