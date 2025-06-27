@@ -2,99 +2,65 @@ pipeline {
   agent any
 
   environment {
-    // === SONARQUBE CONFIGURATION ===
-    SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL = 'http://localhost:9000'
-    SONAR_LOGIN = credentials('Git')  // token SonarQube valide
+    // Token SonarQube
+    SONAR_LOGIN = credentials('sonarqu')
 
-    // === DOCKER CONFIGURATION ===
+    // Variables GitHub
+    GIT_CREDENTIALS = 'GitJenkinsDevops'
+    GIT_REPO = 'https://github.com/KhrissiDhia/adoption-Project.git'
+
+    // Variables Docker (adapter si besoin)
     DOCKER_REGISTRY = 'docker.io'
-    DOCKER_REPO = 'dhiakhrissi'                // Nom d'utilisateur Docker Hub
-    DOCKER_IMAGE = 'adoption-project'          // Nom de l'image Docker
-    DOCKER_CREDENTIALS = 'dockerhub-cred'      // ID du credential Docker dans Jenkins
+    DOCKER_REPO = 'dhiakhrissi'
+    DOCKER_IMAGE = 'adoption-project'
+    DOCKER_CREDENTIALS = 'dockerhub-cred'  // à configurer dans Jenkins si tu fais Docker push
   }
 
   stages {
 
-    stage('🧹 Clean') {
+    stage('Checkout') {
+      steps {
+        git url: "${GIT_REPO}", credentialsId: "${GIT_CREDENTIALS}", branch: 'main'
+      }
+    }
+
+    stage('Clean') {
       steps {
         sh 'mvn clean'
       }
     }
 
-    stage('⚙️ Compile') {
+    stage('Compile') {
       steps {
         sh 'mvn compile'
       }
     }
 
-    stage('🧪 Tests') {
+    stage('Test') {
       steps {
         sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest'
       }
     }
 
-    stage('📦 Package + Detect JAR') {
+    stage('Package') {
       steps {
         sh 'mvn package -DskipTests'
-        script {
-          def jar = sh(script: "ls target/*.jar | grep -v 'original' | head -n 1", returnStdout: true).trim()
-          env.JAR_NAME = jar.replaceAll('target/', '')
-          echo "✅ JAR détecté : ${env.JAR_NAME}"
-        }
       }
     }
 
-    stage('🔍 Analyse SonarQube') {
+    stage('SonarQube Analyse') {
       steps {
-        withSonarQubeEnv('MySonarServer') {  // Nom du serveur configuré dans Jenkins > Configure System
+        withSonarQubeEnv('MySonarServer') {
           sh """
             mvn sonar:sonar \\
-              -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
-              -Dsonar.host.url=${SONAR_HOST_URL} \\
+              -Dsonar.projectKey=adoption-project \\
+              -Dsonar.host.url=http://localhost:9000 \\
               -Dsonar.login=${SONAR_LOGIN}
           """
         }
       }
     }
 
-    stage('📤 Deploy Nexus') {
-      steps {
-        sh 'mvn deploy -DskipTests'
-      }
-    }
-
-    stage('🐳 Build Docker Image') {
-      steps {
-        script {
-          dockerImage = docker.build("${DOCKER_REPO}/${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
-        }
-      }
-    }
-
-    stage('🚀 Push Docker Image') {
-      steps {
-        script {
-          docker.withRegistry("https://${DOCKER_REGISTRY}", DOCKER_CREDENTIALS) {
-            dockerImage.push()
-            dockerImage.push('latest')
-          }
-        }
-      }
-    }
-
-    // ✅ Optionnel : Déploiement automatique d’un conteneur (si serveur supporte Docker)
-    /*
-    stage('⚡ Deploy Container') {
-      steps {
-        sh """
-          docker pull ${DOCKER_REPO}/${DOCKER_IMAGE}:${env.BUILD_NUMBER}
-          docker stop adoption-app || true
-          docker rm adoption-app || true
-          docker run -d --name adoption-app -p 8089:8089 ${DOCKER_REPO}/${DOCKER_IMAGE}:${env.BUILD_NUMBER}
-        """
-      }
-    }
-    */
+    // Optionnel : ajouter Docker build & push si tu veux
   }
 }
