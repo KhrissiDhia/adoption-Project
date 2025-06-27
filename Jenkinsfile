@@ -60,15 +60,15 @@ pipeline {
       steps {
         withCredentials([usernamePassword(
           credentialsId: NEXUS_CREDENTIALS,
-          usernameVariable: 'NEXUS_USER',
-          passwordVariable: 'NEXUS_PASS'
+          usernameVariable: 'NEXUS_USERNAME',
+          passwordVariable: 'NEXUS_PASSWORD'
         )]) {
           sh """
             mvn deploy -DskipTests \
-              -DaltDeploymentRepository=deploymentRepo::default::${NEXUS_URL} \
+              -DaltDeploymentRepository=deploymentRepo::default::http://172.30.93.238:8081/repository/maven-snapshots/ \
               -DrepositoryId=deploymentRepo \
-              -Dserver.username=${NEXUS_USER} \
-              -Dserver.password=${NEXUS_PASS}
+              -Dserver.username=${NEXUS_USERNAME} \
+              -Dserver.password=${NEXUS_PASSWORD}
           """
         }
       }
