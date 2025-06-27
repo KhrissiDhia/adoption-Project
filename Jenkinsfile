@@ -25,16 +25,16 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('sonar') {
-          withCredentials([string(credentialsId: 'sonarqu', variable: 'SONAR_TOKEN_SECURE')]) {
-            sh(script: """
+        withCredentials([string(credentialsId: 'sonarqu', variable: 'SONAR_TOKEN_SECURE')]) {
+          withSonarQubeEnv('sonar') {
+            sh(label: "Analyse SonarQube", script: """
               mvn -B sonar:sonar \
                 -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                 -Dsonar.host.url=${SONAR_HOST_URL} \
                 -Dsonar.login=${SONAR_TOKEN_SECURE} \
                 -Dsonar.java.source=17 \
                 -Dsonar.sourceEncoding=UTF-8
-            """, label: "Exécution analyse SonarQube")
+            """)
           }
         }
       }
@@ -46,7 +46,7 @@ pipeline {
       echo 'Pipeline terminé - voir les résultats ci-dessus'
     }
     failure {
-      echo 'ÉCHEC du pipeline - vérifiez les logs'
+      echo '❌ ÉCHEC du pipeline - vérifiez les logs'
     }
   }
 }
