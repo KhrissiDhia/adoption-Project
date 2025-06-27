@@ -4,7 +4,7 @@ pipeline {
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
     SONAR_HOST_URL = 'http://localhost:9000'
-    SONAR_LOGIN = credentials('github-cred')
+    SONAR_LOGIN = credentials('sonarqu')
 
     // Variables Docker - à adapter selon ton Docker Hub
     DOCKER_REGISTRY = 'docker.io'
