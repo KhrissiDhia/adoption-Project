@@ -3,6 +3,7 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
+    SONAR_TOKEN = credentials('sonarqu') // ID du token dans Credentials
   }
 
   stages {
@@ -32,10 +33,11 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('MySonarServer') {
+        withSonarQubeEnv('sonar') {
           sh """
             mvn sonar:sonar \
-              -Dsonar.projectKey=${SONAR_PROJECT_KEY}
+              -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+              -Dsonar.login=${SONAR_TOKEN}
           """
         }
       }
