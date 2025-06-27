@@ -2,13 +2,13 @@ pipeline {
   agent any
 
   environment {
-    SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL    = 'http://localhost:9000'
-    SONAR_LOGIN       = credentials('sonar11')
-    DOCKER_IMAGE      = 'monuser/adoption-app'
-    DOCKER_CREDENTIALS= 'dockerhub-creds10'
-    NEXUS_CREDENTIALS = 'nexus-creds'
-    NEXUS_URL         = 'http://172.30.93.238:8081/repository/maven-snapshots/'
+    SONAR_PROJECT_KEY   = 'adoption-project'
+    SONAR_HOST_URL      = 'http://localhost:9000'
+    SONAR_LOGIN         = credentials('sonar11')
+    DOCKER_IMAGE        = 'dhiakhrissi/dhiyaprojet'  // Corrigé selon votre repo Docker Hub
+    DOCKER_CREDENTIALS  = 'dockerhub-creds10'
+    NEXUS_CREDENTIALS   = 'nexus-creds'
+    NEXUS_URL           = 'http://172.30.93.238:8081/repository/maven-snapshots/'
   }
 
   stages {
@@ -64,27 +64,24 @@ pipeline {
           passwordVariable: 'NEXUS_PASSWORD'
         )]) {
           writeFile file: 'settings-nexus.xml', text: """
-    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-              xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
-                                  https://maven.apache.org/xsd/settings-1.0.0.xsd">
-      <servers>
-        <server>
-          <id>deploymentRepo</id>
-          <username>${NEXUS_USERNAME}</username>
-          <password>${NEXUS_PASSWORD}</password>
-        </server>
-      </servers>
-    </settings>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                              https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>deploymentRepo</id>
+      <username>${NEXUS_USERNAME}</username>
+      <password>${NEXUS_PASSWORD}</password>
+    </server>
+  </servers>
+</settings>
           """
 
-          sh """
-            mvn deploy -s settings-nexus.xml -DskipTests
-          """
+          sh 'mvn deploy -s settings-nexus.xml -DskipTests'
         }
       }
     }
-
 
     stage('🐳 Build Docker') {
       steps {
@@ -106,17 +103,15 @@ pipeline {
           usernameVariable: 'DOCKER_USER',
           passwordVariable: 'DOCKER_PASS'
         )]) {
-          // Use single quotes around the shell script and double quotes inside to prevent interpolation issues
-          sh '''
+          sh """
             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             docker push ${DOCKER_IMAGE}:latest
             docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
             docker logout
-          '''
+          """
         }
       }
     }
-
 
     stage('🚀 Docker Compose') {
       steps {
@@ -133,14 +128,12 @@ pipeline {
     always {
       script {
         echo '✅ Pipeline terminé.'
-        // Nettoyage des containers
         sh 'docker-compose down || true'
       }
     }
     failure {
       script {
         echo '❌ Pipeline échoué, vérifiez les logs.'
-        // Archivage des logs en cas d'échec
         archiveArtifacts artifacts: '**/target/*.log', allowEmptyArchive: true
       }
     }
