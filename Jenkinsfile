@@ -3,38 +3,46 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL = 'http://172.30.93.238:9000/'
+    SONAR_HOST_URL = 'http://172.30.93.238:9000'
   }
 
   stages {
     stage('🧹 Clean') {
-      steps { sh 'mvn clean' }
+      steps {
+        sh 'mvn clean'
+      }
     }
 
     stage('⚙️ Compile') {
-      steps { sh 'mvn compile' }
+      steps {
+        sh 'mvn compile'
+      }
     }
 
     stage('🧪 Tests') {
-      steps { sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest' }
+      steps {
+        sh 'mvn test -Dtest=AdoptionServicesImplMockitoTest,AdoptionServicesImplTest'
+      }
     }
 
     stage('📦 Package') {
-      steps { sh 'mvn package -DskipTests' }
+      steps {
+        sh 'mvn package -DskipTests'
+      }
     }
 
     stage('🔍 Analyse SonarQube') {
       steps {
         withCredentials([string(credentialsId: 'sonar11', variable: 'SONAR_TOKEN_SECURE')]) {
           withSonarQubeEnv('sonar') {
-            sh(label: "Analyse SonarQube", script: """
+            sh label: 'Analyse SonarQube', script: '''
               mvn -B sonar:sonar \
-                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                -Dsonar.host.url=${SONAR_HOST_URL} \
-                -Dsonar.login=${SONAR_TOKEN_SECURE} \
+                -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                -Dsonar.host.url=$SONAR_HOST_URL \
+                -Dsonar.login=$SONAR_TOKEN_SECURE \
                 -Dsonar.java.source=17 \
                 -Dsonar.sourceEncoding=UTF-8
-            """)
+            '''
           }
         }
       }
@@ -43,10 +51,10 @@ pipeline {
 
   post {
     always {
-      echo 'Pipeline terminé - voir les résultats ci-dessus'
+      echo '✅ Pipeline terminé - voir les résultats ci-dessus'
     }
     failure {
-      echo '❌ ÉCHEC du pipeline - vérifiez les logs'
+      echo '❌ ÉCHEC du pipeline - vérifiez les logs pour plus de détails'
     }
   }
 }
