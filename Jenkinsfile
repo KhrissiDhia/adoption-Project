@@ -33,11 +33,12 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('sonar') {
+        withSonarQubeEnv('Sonar') {
           sh """
             mvn sonar:sonar \
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-              -Dsonar.login=${SONAR_TOKEN}
+              -Dsonar.host.url=${SONAR_HOST_URL} \
+              -Dsonar.login=${SONAR_LOGIN}
           """
         }
       }
