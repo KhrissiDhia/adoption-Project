@@ -6,7 +6,7 @@ pipeline {
     SONAR_HOST_URL    = 'http://localhost:9000'
     SONAR_LOGIN       = credentials('sonar11')
     DOCKER_IMAGE      = 'monuser/adoption-app'
-    DOCKER_CREDENTIALS= 'dockerhub-creds'
+    DOCKER_CREDENTIALS= 'dockerhub-creds1'
     NEXUS_CREDENTIALS = 'nexus-creds'
     NEXUS_URL         = 'http://172.30.93.238:8081/repository/maven-snapshots/'
   }
