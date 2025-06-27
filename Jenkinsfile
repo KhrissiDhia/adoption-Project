@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL = 'http://localhost:9000'  // Doit correspondre à l'URL configurée
+    SONAR_HOST_URL = 'http://localhost:9000'
   }
 
   stages {
@@ -25,14 +25,16 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('sonar') {  // Doit exactement matcher le nom dans Jenkins
-          withCredentials([string(credentialsId: 'sonarqu', variable: 'SONAR_TOKEN')]) {
-            sh """
-              mvn sonar:sonar \
+        withSonarQubeEnv('sonar') {
+          withCredentials([string(credentialsId: 'sonarqu', variable: 'SONAR_TOKEN_SECURE')]) {
+            sh(script: """
+              mvn -B sonar:sonar \
                 -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                 -Dsonar.host.url=${SONAR_HOST_URL} \
-                -Dsonar.login=${SONAR_TOKEN}
-            """
+                -Dsonar.login=${SONAR_TOKEN_SECURE} \
+                -Dsonar.java.source=17 \
+                -Dsonar.sourceEncoding=UTF-8
+            """, label: "Exécution analyse SonarQube")
           }
         }
       }
