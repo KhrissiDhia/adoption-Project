@@ -5,9 +5,9 @@ pipeline {
     SONAR_PROJECT_KEY   = 'adoption-project'
     SONAR_HOST_URL      = 'http://localhost:9000'
     SONAR_LOGIN         = credentials('sonar11')
-    DOCKER_IMAGE        = 'dhiakhrissi/dhiyaprojet'  // Corrigé selon votre repo Docker Hub
-    DOCKER_CREDENTIALS  = 'dockerhub-creds10'
-    NEXUS_CREDENTIALS   = 'nexus-creds'
+    DOCKER_IMAGE        = 'dhiakhrissi/dhiyaprojet'  // Votre repo Docker Hub exact
+    DOCKER_CREDENTIALS  = 'dockerhub-creds10'        // Jenkins Credentials ID Docker
+    NEXUS_CREDENTIALS   = 'nexus-creds'              // Jenkins Credentials ID Nexus
     NEXUS_URL           = 'http://172.30.93.238:8081/repository/maven-snapshots/'
   }
 
@@ -77,7 +77,6 @@ pipeline {
   </servers>
 </settings>
           """
-
           sh 'mvn deploy -s settings-nexus.xml -DskipTests'
         }
       }
@@ -87,8 +86,7 @@ pipeline {
       steps {
         script {
           sh """
-            docker build \
-              --build-arg JAR_FILE=${env.JAR_NAME} \
+            docker build --build-arg JAR_FILE=${env.JAR_NAME} \
               -t ${DOCKER_IMAGE}:latest \
               -t ${DOCKER_IMAGE}:${env.BUILD_NUMBER} .
           """
