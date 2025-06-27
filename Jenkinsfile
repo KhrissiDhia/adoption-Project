@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_HOST_URL = 'http://172.30.93.238:9000'
+
   }
 
   stages {
@@ -38,7 +38,7 @@ pipeline {
             sh label: 'Analyse SonarQube', script: '''
               mvn -B sonar:sonar \
                 -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-                -Dsonar.host.url=$SONAR_HOST_URL \
+                -Dsonar.host.url='http://172.30.93.238:9000' \
                 -Dsonar.login=$SONAR_TOKEN_SECURE \
                 -Dsonar.java.source=17 \
                 -Dsonar.sourceEncoding=UTF-8
