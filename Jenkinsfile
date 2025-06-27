@@ -2,7 +2,15 @@ pipeline {
   agent any
 
   environment {
-    SONAR_PROJECT_KEY = 'adoption-project'
+    SONAR_PROJECT_KEY = 'adoption-project'               // Ton projet SonarQube
+    SONAR_HOST_URL    = 'http://172.30.93.238:9000'      // Ton URL SonarQube
+    SONAR_LOGIN       = credentials('sonar11')           // Ton token Sonar (Secret text)
+
+    NEXUS_CREDENTIALS = 'nexus-creds'                     // Credentials Nexus (username/password)
+    NEXUS_URL         = 'http://nexus.example.com/repository/maven-releases/'  // URL Nexus repo
+
+    DOCKER_IMAGE      = 'mondockeruser/adoption-app'      // Image Docker avec tag complet
+    DOCKER_CREDENTIALS= 'dockerhub-creds'                 // Credentials Docker Hub
   }
 
   stages {
@@ -24,36 +32,86 @@ pipeline {
       }
     }
 
-    stage('📦 Package') {
+    stage('📦 Package + Detect JAR') {
       steps {
         sh 'mvn package -DskipTests'
+        script {
+          def jar = sh(script: "ls target/*.jar | grep -v 'original' | head -n 1", returnStdout: true).trim()
+          env.JAR_NAME = jar.replaceAll('target/', '')
+          echo "JAR détecté : ${env.JAR_NAME}"
+        }
       }
     }
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withCredentials([string(credentialsId: 'sonar11', variable: 'SONAR_TOKEN')]) {
+        withCredentials([string(credentialsId: 'sonar11', variable: 'SONAR_TOKEN_SECURE')]) {
           withSonarQubeEnv('sonar') {
             sh '''
-              mvn -B sonar:sonar \
-                -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                -Dsonar.host.url=http://172.30.93.238:9000 \
-                -Dsonar.login=${SONAR_TOKEN} \
-                -Dsonar.java.source=17 \
-                -Dsonar.sourceEncoding=UTF-8
+              mvn sonar:sonar \
+                -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+                -Dsonar.host.url=$SONAR_HOST_URL \
+                -Dsonar.login=$SONAR_TOKEN_SECURE
             '''
           }
         }
+      }
+    }
+
+    stage('📤 Deploy Nexus') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS, usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+          sh """
+            mvn deploy:deploy-file \
+              -Durl=$NEXUS_URL \
+              -DrepositoryId=nexus \
+              -Dfile=target/${env.JAR_NAME} \
+              -DgroupId=com.example.adoption \
+              -DartifactId=adoption-project \
+              -Dversion=1.0.${env.BUILD_NUMBER} \
+              -Dpackaging=jar \
+              -DgeneratePom=true \
+              -DrepositoryLayout=default \
+              -Dusername=$NEXUS_USER \
+              -Dpassword=$NEXUS_PASS
+          """
+        }
+      }
+    }
+
+    stage('🐳 Build Docker') {
+      steps {
+        sh "docker build --build-arg JAR_FILE=${env.JAR_NAME} -t ${DOCKER_IMAGE}:latest ."
+      }
+    }
+
+    stage('📤 Push Docker') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+          sh """
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push ${DOCKER_IMAGE}:latest
+            docker logout
+          """
+        }
+      }
+    }
+
+    stage('🚀 Docker Compose') {
+      steps {
+        sh 'docker-compose stop springboot-app || true'
+        sh 'docker-compose up -d --build springboot-app'
+        sh 'sleep 30'
       }
     }
   }
 
   post {
     always {
-      echo '✅ Pipeline terminé - voir les résultats ci-dessus'
+      echo '✅ Pipeline terminé.'
     }
     failure {
-      echo '❌ ÉCHEC du pipeline - vérifiez les logs pour plus de détails'
+      echo '❌ Pipeline échoué, vérifie les logs.'
     }
   }
 }
