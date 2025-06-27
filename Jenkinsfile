@@ -52,22 +52,7 @@ pipeline {
 
     stage('📤 Deploy Nexus') {
       steps {
-        withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS, usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-          sh """
-            mvn deploy:deploy-file \
-              -Durl=$NEXUS_URL \
-              -DrepositoryId=nexus \
-              -Dfile=target/${env.JAR_NAME} \
-              -DgroupId=com.example.adoption \
-              -DartifactId=adoption-project \
-              -Dversion=1.0.${env.BUILD_NUMBER} \
-              -Dpackaging=jar \
-              -DgeneratePom=true \
-              -DrepositoryLayout=default \
-              -Dusername=$NEXUS_USER \
-              -Dpassword=$NEXUS_PASS
-          """
-        }
+        sh 'mvn deploy -DskipTests'
       }
     }
 
