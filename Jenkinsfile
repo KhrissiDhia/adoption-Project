@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_TOKEN = credentials('sonarqu') // ID du token dans Credentials
+    SONAR_TOKEN = credentials('sonarqu') // ID token Jenkins Credentials
   }
 
   stages {
