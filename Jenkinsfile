@@ -2,15 +2,16 @@ pipeline {
   agent any
 
   environment {
+    // === SONARQUBE CONFIGURATION ===
     SONAR_PROJECT_KEY = 'adoption-project'
     SONAR_HOST_URL = 'http://localhost:9000'
-    SONAR_LOGIN = credentials('jenkinsDevops')
+    SONAR_LOGIN = credentials('jenkinsDevops')  // token SonarQube valide
 
-    // Variables Docker - à adapter selon ton Docker Hub
+    // === DOCKER CONFIGURATION ===
     DOCKER_REGISTRY = 'docker.io'
-    DOCKER_REPO = 'dhiakhrissi'          // Ton namespace Docker Hub
-    DOCKER_IMAGE = 'adoption-project'    // Nom de l'image Docker
-    DOCKER_CREDENTIALS = 'dockerhub-cred'  // Id des credentials Jenkins pour Docker Hub
+    DOCKER_REPO = 'dhiakhrissi'                // Nom d'utilisateur Docker Hub
+    DOCKER_IMAGE = 'adoption-project'          // Nom de l'image Docker
+    DOCKER_CREDENTIALS = 'dockerhub-cred'      // ID du credential Docker dans Jenkins
   }
 
   stages {
@@ -37,7 +38,6 @@ pipeline {
       steps {
         sh 'mvn package -DskipTests'
         script {
-          sleep 10
           def jar = sh(script: "ls target/*.jar | grep -v 'original' | head -n 1", returnStdout: true).trim()
           env.JAR_NAME = jar.replaceAll('target/', '')
           echo "✅ JAR détecté : ${env.JAR_NAME}"
@@ -47,7 +47,7 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('MySonarServer') {
+        withSonarQubeEnv('MySonarServer') {  // Nom du serveur configuré dans Jenkins > Configure System
           sh """
             mvn sonar:sonar \\
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
@@ -83,7 +83,7 @@ pipeline {
       }
     }
 
-    // Optionnel : déploiement sur un serveur en lançant le container
+    // ✅ Optionnel : Déploiement automatique d’un conteneur (si serveur supporte Docker)
     /*
     stage('⚡ Deploy Container') {
       steps {
