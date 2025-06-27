@@ -2,8 +2,10 @@ pipeline {
   agent any
 
   environment {
+    // Configuration SonarQube
     SONAR_PROJECT_KEY = 'adoption-project'
-    SONAR_TOKEN = credentials('sonarqu') // ID token Jenkins Credentials
+    SONAR_HOST_URL = 'http://localhost:9000' // À adapter si nécessaire
+    SONAR_LOGIN = credentials('sonarqu') // Doit correspondre à l'ID dans Jenkins Credentials
   }
 
   stages {
@@ -33,7 +35,8 @@ pipeline {
 
     stage('🔍 Analyse SonarQube') {
       steps {
-        withSonarQubeEnv('Sonar') {
+        // 'Sonar' doit correspondre exactement au nom configuré dans Jenkins
+        withSonarQubeEnv('sonar') {
           sh """
             mvn sonar:sonar \
               -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -44,4 +47,6 @@ pipeline {
       }
     }
   }
+
+
 }
